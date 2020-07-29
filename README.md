@@ -18,7 +18,7 @@ Once the files are copied and `auth.json` is modified, run 'npm install' in the 
 To start the bot, run the command: `node bot.js`.
 
 ## Inviting to a guild
-To add the bot to your guild, you have to get an oauth link for it in your discord developers page.
+To add the bot to your guild, you have to get an oauth link for it in your discord developers page with the `Read Message History` and `Send Messages` permissions.
 
 ## Special Thanks
 The Chosen and Sheeps community for testing and giving feedback.
