@@ -626,18 +626,18 @@ function rankCommand(args, channelID)
     debug("rank: args = " + args + ", channelID = " + channelID);
     if (args.length == 0 || args[0] == 'help') {
 	message(channelID, rankHelp);
-	debug("rank finished by help");
+	debug("finished rank by help");
 	return;
     }
     if (args.length < 2) {
 	message(channelID, "`!rank` must have 3 arguments: name of pixeling, current rank and current number of copies");
-	debug("rank finished by not enough arguments");
+	debug("finished rank by not enough arguments");
 	return;
     }
     var rarity = getRarity(args[0]);
     if (rarity == "undefined") {
 	message(channelID, args[0] + " does not exist");
-	debug("rank finished by invalid");
+	debug("finished rank by invalid pixeling");
 	return;
     }
     var rank = Number(args[1]);
@@ -670,7 +670,7 @@ function rankCommand(args, channelID)
 	if (isNaN(toRank) || toRank > copiesMap[rarity].length + 1) {
 
 	    message(channelID, args[3] + ' is not a valid target rank ');
-	    debug("finished rank by invalid toRank");
+	    debug("finished rank by invalid target rank");
 	    return;
 	}
     }
@@ -695,7 +695,7 @@ function rankCommand(args, channelID)
 	mes = mes + ' needed for rank ' + toRank;
     }
     message(channelID, mes);
-    debug("rank finished");
+    debug("finished rank");
 }
 
 // FOOD
@@ -705,17 +705,17 @@ function foodCommand(args, channelID)
     debug("food: args = " + args + ", channelID = " + channelID);
     if (args.length == 0 || args[0] == 'help') {
 	message(channelID, foodHelp);
-	debug("food finished by help");
+	debug("finished food by help");
 	return;
     }
     if (getRarity(args[0]) == "undefined") {
 	message(channelID, args[0] + " does not exist");
-	debug("food finished by invalid");
+	debug("finished food by invalid");
 	return;
     }
     var color = colorMap[args[0]];
     message(channelID, emote(args[0]) + "'s favorite food are " + emote(color + "500") + ", " + emote(color + "2000") + " and " + emote(color + "8000"));
-    debug("food finished");
+    debug("finished food");
 }
 
 // ALERT
@@ -775,13 +775,13 @@ function alertCommand(authorID, args, channelID)
     debug("reminder: author = " + authorID + ", args = " + args + ", channelID = " + channelID);
     if (args.length == 0 || args[0] == 'help') {
 	message(channelID, alertHelp);
-	debug("finished by help");
+	debug("finished reminder by help");
 	return;
     }
     var pixeling = args[0];
     if (getRarity(pixeling) == "undefined") {
 	message(channelID, "" + pixeling + " does not exist");
-	debug("finished by no pixeling");
+	debug("finished reminder by invalid pixeling");
 	return;
     }
     
@@ -790,7 +790,7 @@ function alertCommand(authorID, args, channelID)
 	time = parseInt(args[1]);
 	if (isNaN(time) || time < 0 || time > 24) {
 	    message(channelID, args[1] + " is not a valid time");
-	    debug("finished by invalid time");
+	    debug("finished reminder by invalid time");
 	    return;
 	}
     }
