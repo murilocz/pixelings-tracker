@@ -22,4 +22,32 @@ To start the bot, run the command: `node bot.js`.
 To add the bot to your guild, you have to get an oauth link for it in your discord developers page with the `Read Message History` and `Send Messages` permissions.
 
 ## Special Thanks
-The Chosen and Sheeps community for testing and giving feedback.
+The Chosen and Sheeps communities for testing and giving feedback.
+
+---
+
+The following are the commands in the bot:
+
+## `!tracker`
+General help command. Has a list with all the other commands.
+
+## `!track <reward>`
+Find where a given reward can be found in the story missions.
+
+## `!rank <pixeling> <current level> <current copies> [<target rank>]`
+Finds the number of copies and coins needed to upgrade a pixeling.
+
+## `!food <pixeling>`
+Finds the favorite food of the pixeling.
+
+## `!reminder <pixeling> [<hours>]`
+Gives a reminder before a pixeling shows up in the rotation.
+
+## `!rotation [<days>]`
+Finds what will be the rotation in a certain number of days.
+
+## `!xp <start level> [<end level>]`
+Finds the xp needed to upgrade a pixeling from a level to another.
+
+## `!pxp <start level> [<end level>]`
+Finds the player xp to level up from a level to another.
