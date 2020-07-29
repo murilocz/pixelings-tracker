@@ -1,0 +1,14 @@
+{
+  "name": "pixelings-tracker",
+  "version": "1.0.0",
+  "description": "Pixelings Tracker",
+  "main": "bot.js",
+  "author": "murilocz",
+  "dependencies": {
+    "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6"
+  },
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "license": "MIT"
+}
