@@ -12,7 +12,7 @@ You also need to modify the `auth.json` file with the bot's token and the ids of
 The bot must be invited to all the servers above, and have write and edit permissions on the alert channel.
 
 ## Setting up
-Once the files are copied and `auth.json` is modified, run 'npm install' in the folder.
+Once the files are copied and `auth.json` is modified, run `npm install` in the folder.
 
 ## Starting the bot
 To start the bot, run the command: `node bot.js`.
