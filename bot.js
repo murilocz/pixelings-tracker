@@ -19,19 +19,28 @@ function debug(mes)
     console.log(mes);
 }
 
+function messageEmbed(channelID, tit, des, col)
+{
+    bot.sendMessage({
+        to: channelID,
+        embed: {
+	    title: tit,
+	    description: des,
+	    color: col
+	}
+    });
+}
+
 function message(channelID, mes)
 {
     bot.sendMessage({
         to: channelID,
         message: mes
-    }, function(error, response) {
-	
     });
 }
 
 function DaysBetween(StartDate, EndDate) {
     const oneDay = 1000 * 60 * 60 * 24;
-    
     return Math.floor((EndDate.getTime() - StartDate.getTime()) / oneDay);
 }
 
@@ -197,9 +206,7 @@ function printLevel(s1, s2)
     switch(s1.substring(0, 1)) {
     case "b":
 	ans = ans + "Brotown";
-
 	break;
-
     case "f":
 	ans = ans + "Floatopia";
 	break;
@@ -226,7 +233,7 @@ function printLevel(s1, s2)
     default:
 	ans = ans + "Undefined";
     }
-    ans = ans + " level " + s2;
+    ans = ans + " level " + s2.trim();
     return ans;
 }
 
@@ -310,10 +317,8 @@ bot.on('ready', function (evt) {
     dataSpells = readFile("dataSpells");
     separators = [' ', '_', '-'];
     toContract = [["flaming", "bolt"],
-
 		  ["healing", "touch"],
 		  ["bubble", "shield"],
-
 		  ["scorching", "blast"],
 		  ["thunder", "strike"],
 		  ["mass", "strengthen"],
@@ -350,7 +355,7 @@ bot.on('message', function (user, userID, channelID, messageSent, evt) {
     if (userID === bot.id) return;
     if (messageSent.substring(0, 1) == '!') {
 	emojiMap = createMap();
-	var args = prepareForSpells(messageSent.toLowerCase().substring(1)).split(' ');
+	var args = prepareForSpells(messageSent.toLowerCase().substring(1)).split('\n').join(' ').split(' ').filter(n => n);
 	var cmd = args[0];
 	args = args.splice(1);
 	for (var i in args) {
@@ -398,19 +403,21 @@ bot.on('message', function (user, userID, channelID, messageSent, evt) {
 // TRACKER
 function help(args, channelID)
 {
-    var mes = 'This is PixelingsTracker! I can give you several pixelings-related information. Type one of the following commands followed by `help` for more information: `!track`, `!xp`, `!pxp`, `!rotation`, `!reminder`, `!food`, `!rank`.';
-    mes = mes + ' Made by ' + emote("chosen");
-    message(channelID, mes);
+    var color = 0xe8b629; //gold
+    var mes = 'I can give you several pixelings-related information. Type one of the following commands followed by `help` for more information: `!track`, `!xp`, `!pxp`, `!rotation`, `!reminder`, `!food`, `!rank`.\n';
+    mes = mes + 'Made by murilocz from The Chosen. ' + emote("chosen");
+    messageEmbed(channelID, "Pixelings Tracker", mes, color);
 }
 
 // TRACK
-var trackHelp = '`!track <reward>` helps you find pixelings and other level rewards. Put the name of a pixeling, the name of a spell, `coin`, `xp` or a food type (or `food` for help) after `!track` to find where they can be obtained';
+var trackHelp = 'Find where pixelings and other level rewards are obtained. Put the name of a pixeling, the name of a spell, `coin`, `xp` or a food type (or `food` for help) after `!track` to find where they can be obtained.';
 function findCommand(args, channelID)
 {
+    var color = 0x66bb6a; //green
     debug("track: args = " + args + ", channelID = " + channelID);
     ss = args[0];
     if (ss == undefined || ss == 'help') {
-	message(channelID, trackHelp);
+	messageEmbed(channelID, "!track <reward>", trackHelp, color);
 	debug("finished track by help");
 	return;
     }
@@ -418,9 +425,9 @@ function findCommand(args, channelID)
 	var mes = "Use `!track` followed by one of the following:\n";
 	for (let [id, value] of Object.entries(foodMap)) {
 
-	    mes = mes + '`' + id + '` or `' + value + '` for ' + emote(id + '500') + ', ' + emote(id + '2000') + ' and ' + emote(id + '8000') + '\n';
+	    mes = mes + '`' + id + '` or `' + value + '` for ' + emote(id + '500') + ', ' + emote(id + '2000') + ' and ' + emote(id + '8000') + '.\n';
 	}
-	message(channelID, mes);
+	messageEmbed(channelID, "!track", mes);
 	debug("finished track by food help");
 	return;
     }
@@ -437,11 +444,18 @@ function findCommand(args, channelID)
     else if (isSpell(s))
 	ans = findSpell(s);
     else {
-	findRotation(s, channelID);
-	ans = findPixeling(s);
+	ans = findRotation(s);
+	if (ans != "")
+	    ans = ans + "\n";
+	ans = ans + findPixeling(s);
+    }
+    if (ans == "") {
+	messageEmbed(channelID, "!track error", s + " is not a valid reward.", color);
+	debug("finished track by invalid reward");
+	return;
     }
     
-    message(channelID, ans);
+    messageEmbed(channelID, "!track", ans, color);
     debug("finished track");
 }
 
@@ -462,7 +476,7 @@ function findCoins()
 	else {
 	    if (amount != 0) {
 		if (i < lineLimit)
-		    ans = ans + emote('coin') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '\n';
+		    ans = ans + emote('coin') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '.\n';
 		i++;
 	    }
 	    amount = s[0];
@@ -472,7 +486,7 @@ function findCoins()
     }
     if (amount != 0) {
 	if (i < lineLimit)
-	    ans = ans + emote('coin') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '\n';
+	    ans = ans + emote('coin') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '.\n';
 	i++;
     }
     return ans;
@@ -495,7 +509,7 @@ function findExp()
 	else {
 	    if (amount != 0) {
 		if (i < lineLimit)
-		    ans = ans + emote('xp') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '\n';
+		    ans = ans + emote('xp') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '.\n';
 		i++;
 	    }
 	    amount = s[0];
@@ -505,7 +519,7 @@ function findExp()
     }
     if (amount != 0) {
 	if (i < lineLimit)
-	    ans = ans + emote('xp') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '\n';
+	    ans = ans + emote('xp') + ' x ' + amount + ' in ' + printLevels(stage, levels) + '.\n';
 	i++;
     }
     return ans;
@@ -515,7 +529,6 @@ function findFood(color)
 {
     for (let [id, value] of Object.entries(foodMap)) {
 	if (color == value)
-
 	    color = id;
     }
     var lines = dataFood;
@@ -535,7 +548,7 @@ function findFood(color)
 		type = "8000";
 	    var q = Number(s[1]) / Number(type);
 	    ans = ans + emote(color + type) + " x " + q;
-	    ans = ans + ' in ' + printLevel(s[2], s[3]) + '\n';
+	    ans = ans + ' in ' + printLevel(s[2], s[3]) + '.\n';
 	}
 	i++;
     }
@@ -551,18 +564,18 @@ function findSpell(s)
 	if (s == l[0] || s == "spell" + l[0] || s == "all") {
 	    mes = mes + "\n" + printSpell(l[0]) + " is ";
 	    if (l[1] == "0")
-		mes = mes + "unlocked by default";
+		mes = mes + "unlocked by default.";
 	    else
-		mes = mes + "found in " + printLevel(l[1], l[2]);
+		mes = mes + "found in " + printLevel(l[1], l[2]) + ".";
 	}
     }
     return mes.substring(1, mes.length);
 }
 
-function findRotation(pixeling, channelID)
+function findRotation(pixeling)
 {
     if (getRarity(pixeling) == "undefined")
-	return;
+	return "";
     var lines = dataRotation;
     var n = lines.length;
     var index = currentChestRotation(n);
@@ -592,15 +605,16 @@ function findRotation(pixeling, channelID)
 	    mes = mes + 's';
 	mes = mes + ".";
     }
-    mes = mes + " Don't miss it by using `!reminder`";
-    message(channelID, mes);
+    mes = mes + " Don't miss it by using `!reminder`.";
+    return mes;
 }
 
 function findPixeling(pixeling)
 {
     if (getRarity(pixeling) == "undefined")
-	return pixeling + " does not exist";
+	return "";
     var lines = dataLevelsPixelings;
+    var ans = "";
     var ansLines = [];
     var i = 0;
     for (let line of lines) {
@@ -608,41 +622,37 @@ function findPixeling(pixeling)
 	if (s[0] != pixeling)
 	    continue;
 	if (i < lineLimit)
-	    ansLines.push(emote(s[0]) + ' x' + s[1] + ' in ' + printLevel(s[2], s[3]) + '\n');
+	    ans = emote(s[0]) + ' x' + s[1] + ' in ' + printLevel(s[2], s[3]) + '.';
 	i++;
     }
-    ansLines.sort();
-
-    var ans = "";
-    for (let line of ansLines)
-	ans = ans + line;
     return ans;
 }
 
 // RANK
-var rankHelp = '`!rank <pixeling> <current rank> <current copies> [<target rank>]` helps you find how many copies and coins you need to rank up your pixelings. Put the name of a pixeling, its current rank and its current number of copies to find what is needed to reach max rank. You may also put another target rank after the number of copies.';
+var rankHelp = 'Find how many copies and coins you need to rank up your pixelings. Put the name of a pixeling, its current rank and its current number of copies to find what is needed to reach max rank. You may also put another target rank after the number of copies.';
 function rankCommand(args, channelID)
 {
+    var color = 0xef5350; //red
     debug("rank: args = " + args + ", channelID = " + channelID);
     if (args.length == 0 || args[0] == 'help') {
-	message(channelID, rankHelp);
+	messageEmbed(channelID, "!rank <pixeling> <current rank> <current copies> [<target rank>]", rankHelp, color);
 	debug("finished rank by help");
 	return;
     }
     if (args.length < 2) {
-	message(channelID, "`!rank` must have 3 arguments: name of pixeling, current rank and current number of copies");
+	messageEmbed(channelID, "!rank error", "`!rank` must have 3 arguments: name of pixeling, current rank and current number of copies.", color);
 	debug("finished rank by not enough arguments");
 	return;
     }
     var rarity = getRarity(args[0]);
     if (rarity == "undefined") {
-	message(channelID, args[0] + " does not exist");
+	messageEmbed(channelID, "!rank error", args[0] + " is not a valid pixeling.", color);
 	debug("finished rank by invalid pixeling");
 	return;
     }
     var rank = Number(args[1]);
     if (isNaN(rank) || rank < 1 || rank > copiesMap[rarity].length + 1) {
-	message(channelID, args[1] + ' is not a valid rank for ' + emote(args[0]));
+	messageEmbed(channelID, "!rank error", args[1] + ' is not a valid rank for ' + emote(args[0]) + '.', color);
 	debug("finished rank by invalid rank");
 	return;
     }
@@ -658,7 +668,7 @@ function rankCommand(args, channelID)
     else
 	copies = 0;
     if (isNaN(copies) || copies < 0 || copies > maxCopies) {
-	message(channelID, args[2] + ' is not a valid number of copies for ' + emote(args[0]) + ' at rank ' + args[1]);
+	messageEmbed(channelID, "!rank error", args[2] + ' is not a valid number of copies for ' + emote(args[0]) + ' at rank ' + args[1] + '.', color);
 	debug("finished rank by invalid copies");
 	return;
     }
@@ -667,9 +677,9 @@ function rankCommand(args, channelID)
 	toRank = copiesMap[rarity].length + 1;
     else {
 	toRank = Number(args[3]);
-	if (isNaN(toRank) || toRank > copiesMap[rarity].length + 1) {
+	if (isNaN(toRank) || toRank < 0 || toRank > copiesMap[rarity].length + 1) {
 
-	    message(channelID, args[3] + ' is not a valid target rank ');
+	    messageEmbed(channelID, "!rank error", args[3] + ' is not a valid target rank for ' + emote(args[0]) + '.', color);
 	    debug("finished rank by invalid target rank");
 	    return;
 	}
@@ -687,45 +697,46 @@ function rankCommand(args, channelID)
 	copiesLeft = 0;
     var mes = "";
     if (totalCoins == 0)
-	mes = emote(args[0]) + " is already past rank " + toRank;
+	mes = emote(args[0]) + " is already past rank " + toRank + ".";
     else {
 	mes = emote('coin') + ' x ' + totalCoins;
 	if (copiesLeft > 0)
 	    mes = mes + ' and ' + emote(args[0]) + ' x ' + copiesLeft;
-	mes = mes + ' needed for rank ' + toRank;
+	mes = mes + ' needed for rank ' + toRank + '.';
     }
-    message(channelID, mes);
+    messageEmbed(channelID, "!rank", mes, color);
     debug("finished rank");
 }
 
 // FOOD
-var foodHelp = '`!food <pixeling>` helps you find what are the favorite foods of a pixeling. Put the name of a pixeling after `!food` to find their favorite foods. To then find where the food itself can be obtained, use `!track food`.';
+var foodHelp = 'Find what are the favorite foods of a pixeling. Put the name of a pixeling after `!food` to find their favorite foods. To then find where the food itself can be obtained, use `!track food`.';
 function foodCommand(args, channelID)
 {
+    var color = 0xffee58; //yellow
     debug("food: args = " + args + ", channelID = " + channelID);
     if (args.length == 0 || args[0] == 'help') {
-	message(channelID, foodHelp);
+	messageEmbed(channelID, "!food <pixeling>", foodHelp, color);
 	debug("finished food by help");
 	return;
     }
     if (getRarity(args[0]) == "undefined") {
-	message(channelID, args[0] + " does not exist");
+	messageEmbed(channelID, "!food error", args[0] + " is not a valid pixeling.", color);
 	debug("finished food by invalid");
 	return;
     }
-    var color = colorMap[args[0]];
-    message(channelID, emote(args[0]) + "'s favorite food are " + emote(color + "500") + ", " + emote(color + "2000") + " and " + emote(color + "8000"));
+    var colorans = colorMap[args[0]];
+    messageEmbed(channelID, "!food", emote(args[0]) + "'s favorite food are " + emote(colorans + "500") + ", " + emote(colorans + "2000") + " and " + emote(colorans + "8000") + ".", color);
     debug("finished food");
 }
 
 // ALERT
-var alertHelp = "`!reminder <pixeling> [<hours>]` sends you reminders for pixelings in the rotation. Type a pixeling name after the command to receive a reminder 24h before it is available in rotation. You may also type another number of hours after the pixeling name.";
+var alertHelp = "Receive reminders for pixelings in the rotation. Type a pixeling name after the command to receive a reminder 24h before it is available in rotation. You may also type another number of hours after the pixeling name.";
 function Message(mesID, mes)
 {
     this.message = mes;
-
     this.id = mesID;
 }
+
 function getMessagesHelp(array, channel, callback, before_)
 {
     bot.getMessages({
@@ -751,6 +762,7 @@ function getMessages(channel, callback)
 {
     getMessagesHelp([], channel, callback, undefined);
 }
+
 function Alert(authorID, pix, messageID, time)
 {
     this.author = authorID;
@@ -758,6 +770,7 @@ function Alert(authorID, pix, messageID, time)
     this.id = messageID;
     this.hours = time;
 }
+
 function getAlerts(callback)
 {
     getMessages(alertsChannel, function(messages) {
@@ -770,17 +783,19 @@ function getAlerts(callback)
 	callback(alerts);
     });
 }
+
 function alertCommand(authorID, args, channelID)
 {
+    var color = 0x42a5f5;
     debug("reminder: author = " + authorID + ", args = " + args + ", channelID = " + channelID);
     if (args.length == 0 || args[0] == 'help') {
-	message(channelID, alertHelp);
+	messageEmbed(channelID, "!reminder <pixeling> [<hours>]", alertHelp, color);
 	debug("finished reminder by help");
 	return;
     }
     var pixeling = args[0];
     if (getRarity(pixeling) == "undefined") {
-	message(channelID, "" + pixeling + " does not exist");
+	messageEmbed(channelID, "!reminder error", "" + pixeling + " is not a valid pixeling.", color);
 	debug("finished reminder by invalid pixeling");
 	return;
     }
@@ -789,7 +804,7 @@ function alertCommand(authorID, args, channelID)
     if (args.length > 1) {
 	time = parseInt(args[1]);
 	if (isNaN(time) || time < 0 || time > 24) {
-	    message(channelID, args[1] + " is not a valid time");
+	    messageEmbed(channelID, "!reminder error", args[1] + " is not a valid number of hours.", color);
 	    debug("finished reminder by invalid time");
 	    return;
 	}
@@ -802,10 +817,10 @@ function alertCommand(authorID, args, channelID)
 		    messageID: alert.id,
 		    message: authorID + " " + pixeling + " " + time
 		});
-		var s = "reminder changed for " + emote(pixeling) + " to " + time + " hour";
+		var s = "Reminder changed for " + emote(pixeling) + " to " + time + " hour";
 		if (time != 1)
 		    s = s + "s";
-		s = s + " before rotation"
+		s = s + " before rotation."
 		var now = new Date();
 		var timeDiff = now.getTime() - referenceDate.getTime();
 		var hour = 1000 * 60 * 60;
@@ -821,17 +836,18 @@ function alertCommand(authorID, args, channelID)
 			s = s + "\n" + emote(pixeling) + " can also be found in the rotation in " + time + " hour";
 			if (time != 1)
 			    s = s + "s";
+			s = s + ".";
 		    }
 		}
-		message(channelID, s);
+		messageEmbed(channelID, "!reminder", s, color);
 		return;
 	    }
 	}
 	message(alertsChannel, authorID + " " + pixeling + " " + time);
-	var s = "reminder set for " + emote(pixeling) + " to " + time + " hour";
+	var s = "Reminder set for " + emote(pixeling) + " to " + time + " hour";
 	if (time != 1)
 	    s = s + "s";
-	s = s + " before rotation";
+	s = s + " before rotation.";
 	
 	var now = new Date();
 	var timeDiff = now.getTime() - referenceDate.getTime();
@@ -848,10 +864,11 @@ function alertCommand(authorID, args, channelID)
 		s = s + "\n" + emote(pixeling) + " can also be found in the rotation in " + time + " hour";
 		if (time != 1)
 		    s = s + "s";
+		s = s + ".";
 	    }
 	}
 	
-	message(channelID, s);
+	messageEmbed(channelID, "!reminder", s, color);
 	debug("finished reminder");
     });
 }
@@ -860,7 +877,6 @@ function checkAlerts()
 {
     debug("checkAlerts");
     getAlerts(function(alerts) {
-
 	var lines = dataRotation;
 	for (let alert of alerts) {
 	    var now = new Date();
@@ -899,7 +915,7 @@ function checkAlerts()
 }
 
 // ROTATION
-var rotationHelp = '`!rotation [<days>]` keeps track of the everyday pixeling rotation. Put a number of days after `!rotation` to find which pixelings will be in the rotation. You can also just type `!rotation` to find the rotation for tomorrow';
+var rotationHelp = ' Find the which pixelings will be in rotation. Put a number of days after `!rotation` to find which pixelings will be in the rotation. You can also just type `!rotation` to find the rotation for tomorrow';
 const referenceDate = new Date(Date.UTC(2020, 6, 29, 0, 0, 0, 0));
 function currentChestRotation(n)
 {
@@ -909,19 +925,20 @@ function currentChestRotation(n)
 
 function rotationCommand(args, channelID)
 {
+    var color = 0xe67e22; //orange
     debug("rotation: args = " + args + ", channelID = " + channelID);
     var n;
     if (args.length == 0)
 	n = 1;
     else if (args[0] == 'help') {
-	message(channelID, rotationHelp);
+	messageEmbed(channelID, "!rotation [<days>]", rotationHelp, color);
 	debug("finished rotation by help");
 	return;
     }
     else {
 	n = Number(args[0]);
 	if (isNaN(n) || n < 0) {
-	    message(channelID, args[0] + ' is not a valid number');
+	    messageEmbed(channelID, "!rotation", args[0] + ' is not a valid number of days.', color);
 	    debug("finished rotation by invalid number");
 	    return;
 	}
@@ -937,53 +954,47 @@ function rotationCommand(args, channelID)
     else
 	mes = "The rotation in " + n + " days will be ";
     var ps = rot.split(' ');
-    mes = mes + emote(ps[0]) + ', ' + emote(ps[1]) + ', ' + emote(ps[2]) + ' and ' + emote(ps[3]);
+    mes = mes + emote(ps[0]) + ', ' + emote(ps[1]) + ', ' + emote(ps[2]) + ' and ' + emote(ps[3]) + '.';
     
-    message(channelID, mes);
-
+    messageEmbed(channelID, "!rotation", mes, color);
     debug("finished rotation");
 }
 
 // XP and PXP
-var xpHelp = '`!xp <start level> [<end level>]` computes pixeling xp. Put the starting level and then the final level after `!xp` to find how much xp is needed. If the final level is omitted, it is assumed to be the max level';
-var pxpHelp = '`!pxp <start level> [<end level>]` computes player xp. Put the starting level and then the final level after `!pxp` to find how much player xp is needed. If the final level is omitted, it is assumed to be the max level';
-function xpCommandsHelper(args, command, helpText, data, channelID)
+var xpHelp = ' Find how much pixeling xp you need. Put the starting level and then the final level after `!xp` to find how much xp is needed. If the final level is omitted, it is assumed to be the max level.';
+var pxpHelp = 'Find how much player xp you need. Put the starting level and then the final level after `!pxp` to find how much player xp is needed. If the final level is omitted, it is assumed to be the max level.';
+function xpCommandsHelper(args, command, helpText, data, channelID, color)
 {
-    if (args.length > 2) {
-	message(channelID, 'too many arguments for ' + command);
-	return undefined;
-    }
     if (args.length == 0 || args[0] == 'help') {
-
-	message(channelID, helpText);
+	messageEmbed(channelID, command + " <start level> [<end level>]", helpText, color);
 	return undefined;
     }
     
     var lines = data;
     var n = lines.length + 1;
-
     var lv1 = Number(args[0]);
     if (isNaN(lv1) || lv1 <= 0 || lv1 > n) {
-	message(channelID, args[0] + ' is not a valid level');
+	messageEmbed(channelID, command + " error", args[0] + ' is not a valid starting level.', color);
 	return undefined;
     }
     var lv2 = n;
-    if (args.length == 2) {
+    if (args.length >= 2) {
 	lv2 = Number(args[1]);
 	if (isNaN(lv2) || lv2 <= 0 || lv2 > n) {
-	    message(channelID, args[1] + ' is not a valid level');
+	    messageEmbed(channelID, command + " error", args[1] + ' is not a valid ending level.', color);
 	    return undefined;
 	}
 
     }
     if (lv2 < lv1) {
-	message(channelID, 'starting level must be smaller than ending level');
+	messageEmbed(channelID, command + " error", 'starting level must be smaller than ending level.', color);
+	return undefined;
     }
     
     var ans = 0;
     for (var i = lv1 - 1; i < lv2 - 1; i++) {
 	if (Number(lines[i]) == -1) {
-	    message(channelID, 'I cannot help you with this yet. I do not know the xp for level ' + (i + 1));
+	    messageEmbed(channelID, command + " error", 'I cannot help you with this yet. I do not know the xp for level ' + (i + 1) + ".", color);
 	    return undefined;
 	}
 	ans += Number(lines[i]);
@@ -993,26 +1004,27 @@ function xpCommandsHelper(args, command, helpText, data, channelID)
 
 function pxpCommand(args, channelID)
 {
+    var color = 0x9575cd; //violet
     debug("pxp: args = " + args + ", channelID = " + channelID);
-    var ans = xpCommandsHelper(args, '!pxp', pxpHelp, dataPxp, channelID);
+    var ans = xpCommandsHelper(args, '!pxp', pxpHelp, dataPxp, channelID, color);
     if (ans == undefined) {
 	debug("finished pxp with error or help");
 	return;
     }
-    message(channelID, emote('xp') + ' x ' + ans[2] + ' needed from lv' + ans[0] + ' to lv' + ans[1]);
+    messageEmbed(channelID, "!pxp", emote('xp') + ' x ' + ans[2] + ' needed from lv' + ans[0] + ' to lv' + ans[1] + '.', color);
     debug("finished pxp");
 }
 
 function xpCommand(args, channelID)
-
 {
+    var color = 0xba68c8; //purple
     debug("xp: args = " + args + ", channelID = " + channelID);
-    var ans = xpCommandsHelper(args, '!xp', xpHelp, dataXp, channelID);
+    var ans = xpCommandsHelper(args, '!xp', xpHelp, dataXp, channelID, color);
     if (ans == undefined) {
 	debug("finished xp with error or help");
 	return;
     }
     var food = Math.round(ans[2] / 160) / 100;
-    message(channelID, emote('pixxp') + ' x ' + ans[2] + ' from lv' + ans[0] + ' to lv' + ans[1] + '. This is ' + food + ' of the favorite largest food (' + emote('blue8000') + ', ' + emote('green8000') + ', ' + emote('red8000') + ', ' + emote('yellow8000') + ' or ' + emote('purple8000') + ')');
+    messageEmbed(channelID, "!xp", emote('pixxp') + ' x ' + ans[2] + ' from lv' + ans[0] + ' to lv' + ans[1] + '. This is ' + food + ' of the favorite largest food (' + emote('blue8000') + ', ' + emote('green8000') + ', ' + emote('red8000') + ', ' + emote('yellow8000') + ' or ' + emote('purple8000') + ').', color);
     debug("finished xp");
 }
