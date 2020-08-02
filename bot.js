@@ -615,15 +615,15 @@ function findPixeling(pixeling)
 	return "";
     var lines = dataLevelsPixelings;
     var ans = "";
-    var ansLines = [];
     var i = 0;
     for (let line of lines) {
 	var s = line.split(' ');
 	if (s[0] != pixeling)
 	    continue;
-	if (i < lineLimit)
-	    ans = emote(s[0]) + ' x' + s[1] + ' in ' + printLevel(s[2], s[3]) + '.';
-	i++;
+	if (i < lineLimit) {
+	    ans = ans + emote(s[0]) + ' x' + s[1] + ' in ' + printLevel(s[2], s[3]) + '.\n';
+	    i++;
+	}
     }
     return ans;
 }
